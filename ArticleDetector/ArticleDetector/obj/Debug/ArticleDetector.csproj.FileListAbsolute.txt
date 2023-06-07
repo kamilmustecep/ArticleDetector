@@ -1,0 +1,11 @@
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\bin\Debug\ArticleDetector.exe.config
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\bin\Debug\ArticleDetector.exe
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\bin\Debug\ArticleDetector.pdb
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\bin\Debug\DocumentFormat.OpenXml.dll
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\bin\Debug\DocumentFormat.OpenXml.xml
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.AssemblyReference.cache
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.SuggestedBindingRedirects.cache
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.CoreCompileInputs.cache
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.CopyComplete
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.exe
+C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.pdb
