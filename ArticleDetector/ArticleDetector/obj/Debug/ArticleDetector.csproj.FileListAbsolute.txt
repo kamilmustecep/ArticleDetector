@@ -9,3 +9,14 @@ C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDete
 C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.CopyComplete
 C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.exe
 C:\Users\Asus\source\repos\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.pdb
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\ArticleDetector.exe.config
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\ArticleDetector.exe
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\ArticleDetector.pdb
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\DocumentFormat.OpenXml.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\DocumentFormat.OpenXml.xml
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.AssemblyReference.cache
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.SuggestedBindingRedirects.cache
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.CoreCompileInputs.cache
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.CopyComplete
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.exe
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.pdb
