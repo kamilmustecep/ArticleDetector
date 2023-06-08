@@ -17,7 +17,7 @@ namespace ArticleDetector
             //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\test.docx";
             string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\test.docx";
 
-
+            CheckIndentationAfterHeading(dosyaYolu);
             bool girintiKontrol = KontrolEtGirinti(dosyaYolu);
             bool boslukKontrol = KontrolEtKenarBosluk(dosyaYolu);
             bool fontKontrol = KontrolEtFont(dosyaYolu);
@@ -241,6 +241,72 @@ namespace ArticleDetector
 
         }
 
+
+        static void CheckIndentationAfterHeading(string filePath)
+        {
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
+            {
+                DocumentFormat.OpenXml.Wordprocessing.Document document = wordDoc.MainDocumentPart.Document;
+                Body body = document.Body;
+
+                // "Giriş" kelimesini içeren paragrafı bulma
+                Paragraph startParagraph = body.Descendants<Paragraph>()
+                    .FirstOrDefault(p => p.InnerText.Contains("Giriş"));
+
+                if (startParagraph != null)
+                {
+                    // "Giriş" paragrafının sonraki paragrafları kontrol etme
+                    bool hasIndentation = false;
+
+                    foreach (Paragraph paragraph in body.Descendants<Paragraph>().Where(x=>!String.IsNullOrEmpty(x.InnerText)))
+                    {
+                        bool isTitle = false;
+                        //bool isMadde = false;
+                        foreach (Run run in paragraph.Descendants<Run>())
+                        {
+                            if (run.RunProperties?.Bold != null)
+                            {
+                                isTitle = true;
+                            }
+                        }
+
+
+                        //ParagraphStyleId styleId = paragraph.ParagraphProperties?.ParagraphStyleId;
+
+                        //// Madde numaralandırması veya işaretleme stili kullanıldıysa
+                        //if (styleId?.Val.HasValue == true &&
+                        //    (styleId.Val.Value.StartsWith("List") || styleId.Val.Value.StartsWith("Bullet")))
+                        //{
+                        //    isMadde = true;
+                        //    Console.WriteLine("Paragraf bir madde elemanıdır.");
+                        //}
+
+
+                        // Paragrafın girintisi varsa hasIndentation değerini true yap ve döngüden çık
+                        if (!isTitle && paragraph.InnerText.Length>=150)
+                        {
+                            if (paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value != "360")
+                            {
+                                Console.WriteLine(" Girinti YOK ");
+                                Console.WriteLine(paragraph.InnerText+"\n");
+                            }
+                            else
+                            {
+                                //Console.WriteLine(" Girinti VAR ");
+                                //Console.WriteLine(paragraph.InnerText + "\n");
+                            }
+                        }
+
+                        if (paragraph.InnerText.ToLower()=="kaynakça")
+                        {
+                            break;
+                        }
+
+                        
+                    }
+                }
+            }
+        }
 
 
         static bool KontrolEtGirinti(string dosyaYolu)
