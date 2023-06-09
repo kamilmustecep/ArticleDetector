@@ -15,9 +15,9 @@ namespace ArticleDetector
         static void Main(string[] args)
         {
             //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\test.docx";
-            string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\test.docx";
+            string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\test2.docx";
 
-            //CheckIndentationAfterHeading(dosyaYolu);
+            CheckIndentationAfterHeading(dosyaYolu);
             bool girintiKontrol = KontrolEtGirinti(dosyaYolu);
             bool boslukKontrol = KontrolEtKenarBosluk(dosyaYolu);
             bool fontKontrol = KontrolEtFont(dosyaYolu);
@@ -243,6 +243,8 @@ namespace ArticleDetector
 
 
 
+
+
         static void CheckIndentationAfterHeading(string filePath)
         {
             using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
@@ -251,8 +253,11 @@ namespace ArticleDetector
                 Body body = document.Body;
 
                 // "Giriş" kelimesini içeren paragrafı bulma
+                List<Paragraph> startParagraphs = body.Descendants<Paragraph>().ToList();
+
+
                 Paragraph startParagraph = body.Descendants<Paragraph>()
-                    .FirstOrDefault(p => p.InnerText.Contains("Giriş"));
+                    .FirstOrDefault(p => p.InnerText.Contains("Giriş") || p.InnerText.ToLower().Contains("giriş") || p.InnerText.ToLower().Contains("introduction") || p.InnerText.Contains("INTRODUCTION"));
 
                 if (startParagraph != null)
                 {
