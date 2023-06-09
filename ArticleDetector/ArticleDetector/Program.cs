@@ -17,7 +17,7 @@ namespace ArticleDetector
             //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\test.docx";
             string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\test.docx";
 
-            CheckIndentationAfterHeading(dosyaYolu);
+            //CheckIndentationAfterHeading(dosyaYolu);
             bool girintiKontrol = KontrolEtGirinti(dosyaYolu);
             bool boslukKontrol = KontrolEtKenarBosluk(dosyaYolu);
             bool fontKontrol = KontrolEtFont(dosyaYolu);
@@ -141,16 +141,16 @@ namespace ArticleDetector
 
                     foreach (Match match in matches1)
                     {
-                        int length = match.Value.Length;
-                        string value = match.Value;
+                        //int length = match.Value.Length;
+                        //string value = match.Value;
 
-                        if (length >= 100)
-                        {
-                            value = match.Value.Substring(length - 50, 50);
-                        }
+                        //if (length >= 100)
+                        //{
+                        //    value = match.Value.Substring(length - 50, 50);
+                        //}
 
 
-                        citations.Add(value);
+                        citations.Add(match.Value);
                     }
 
 
@@ -240,6 +240,7 @@ namespace ArticleDetector
             }
 
         }
+
 
 
         static void CheckIndentationAfterHeading(string filePath)
