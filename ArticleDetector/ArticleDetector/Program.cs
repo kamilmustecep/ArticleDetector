@@ -14,23 +14,26 @@ namespace ArticleDetector
     {
         static void Main(string[] args)
         {
-            //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\test.docx";
-            string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\test2.docx";
+            Console.Write("Denetleme yapılacak dosya ismini yapıştırınız : ");
+            string fileName = Console.ReadLine();
+            Console.WriteLine();
 
-            CheckIndentationAfterHeading(dosyaYolu);
-            bool girintiKontrol = KontrolEtGirinti(dosyaYolu);
+            //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\test.docx";
+            string dosyaYolu = "C:\\Users\\Asus\\Desktop\\articles\\"+ fileName.Replace(".docx", "") + ".docx";
+
+
+            bool girintiKontrol = CheckIndentationAfterHeading(dosyaYolu);
             bool boslukKontrol = KontrolEtKenarBosluk(dosyaYolu);
             bool fontKontrol = KontrolEtFont(dosyaYolu);
             bool puntoKontrol = KontrolEtPunto(dosyaYolu);
             bool satirAraligiKontrol = KontrolEtSatirAraligi(dosyaYolu);
 
-            Console.WriteLine("\n[?] Atıf kontrolü için ilk atıf ismini girin. (Örn. 'Çakmaklı')  : ");
+            Console.Write("\n[?] Atıf kontrolü için ilk atıf ismini (makale yazarının) girin. (Örn. 'Çakmaklı' yada 'Muradov')  : ");
             string atıfFirstName = Console.ReadLine();
 
             var atiflar = FindCitationsInDocx(dosyaYolu, atıfFirstName);
 
             Console.ReadLine();
-
             
         }
 
@@ -39,6 +42,8 @@ namespace ArticleDetector
         //OK
         static bool KontrolEtFont(string dosyaYolu)
         {
+            bool haveInformation = false;
+
             using (WordprocessingDocument belge = WordprocessingDocument.Open(dosyaYolu, false))
             {
                 Body body = belge.MainDocumentPart.Document.Body;
@@ -47,16 +52,32 @@ namespace ArticleDetector
                 {
                     if (run.RunProperties != null && run.RunProperties.RunFonts != null)
                     {
-                        if (!run.RunProperties.RunFonts.Ascii?.Value.Equals("Times New Roman") ?? true)
+                        if (run.RunProperties.RunFonts.Ascii != null)
                         {
-                            Console.WriteLine("FONT : X");
-                            return false;
+                            if (!run.RunProperties.RunFonts.Ascii?.Value.Equals("Times New Roman") ?? true)
+                            {
+                                Console.WriteLine("FONT : X (\""+ run.RunProperties.RunFonts.Ascii?.Value + "\" bulundu)");
+                                return false;
+                            }
+                            else
+                            {
+                                haveInformation = true;
+                            }
                         }
                     }
                 }
             }
 
-            Console.WriteLine("FONT : OK");
+            if (!haveInformation)
+            {
+                Console.WriteLine("FONT : BULUNAMADI! (MANUEL KONTROL ET)");
+            }
+            else
+            {
+                Console.WriteLine("FONT : OK");
+            }
+
+            
 
             return true;
         }
@@ -226,8 +247,8 @@ namespace ArticleDetector
 
                         double desiredMarginCm = 2.5;
 
-                        if (Math.Abs(topMarginCm - desiredMarginCm) < 0.01 && Math.Abs(bottomMarginCm - desiredMarginCm) < 0.01 &&
-                            Math.Abs(leftMarginCm - desiredMarginCm) < 0.01 && Math.Abs(rightMarginCm - desiredMarginCm) < 0.01)
+                        if (Math.Abs(topMarginCm - desiredMarginCm) < 0.02 && Math.Abs(bottomMarginCm - desiredMarginCm) < 0.02 &&
+                            Math.Abs(leftMarginCm - desiredMarginCm) < 0.02 && Math.Abs(rightMarginCm - desiredMarginCm) < 0.02)
                         {
                             Console.WriteLine("KENAR BOŞLUKLARI : OK");
                             return true;
@@ -245,8 +266,9 @@ namespace ArticleDetector
 
 
 
-        static void CheckIndentationAfterHeading(string filePath)
+        static bool CheckIndentationAfterHeading(string filePath)
         {
+            bool status = true;
             using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
             {
                 DocumentFormat.OpenXml.Wordprocessing.Document document = wordDoc.MainDocumentPart.Document;
@@ -257,61 +279,88 @@ namespace ArticleDetector
 
 
                 Paragraph startParagraph = body.Descendants<Paragraph>()
-                    .FirstOrDefault(p => p.InnerText.Contains("Giriş") || p.InnerText.ToLower().Contains("giriş") || p.InnerText.ToLower().Contains("introduction") || p.InnerText.Contains("INTRODUCTION"));
+                    .FirstOrDefault(p => p.InnerText=="Giriş" || p.InnerText.ToLower()=="giriş" || p.InnerText.ToLower().Trim().EndsWith("giriş") || p.InnerText.ToLower().Trim().EndsWith("introduction") || p.InnerText=="INTRODUCTION" || p.InnerText.Trim().EndsWith("Introduction"));
+
 
                 if (startParagraph != null)
                 {
                     // "Giriş" paragrafının sonraki paragrafları kontrol etme
                     bool hasIndentation = false;
 
-                    foreach (Paragraph paragraph in body.Descendants<Paragraph>().Where(x=>!String.IsNullOrEmpty(x.InnerText)))
+                    foreach (Paragraph paragraph in startParagraph.ElementsAfter().Where(x=>x.GetType().Name== "Paragraph"))
                     {
-                        bool isTitle = false;
-                        //bool isMadde = false;
-                        foreach (Run run in paragraph.Descendants<Run>())
+
+                        if (!String.IsNullOrEmpty(paragraph.InnerText))
                         {
-                            if (run.RunProperties?.Bold != null)
+                            bool isTitle = false;
+                            //bool isMadde = false;
+                            foreach (Run run in paragraph.Descendants<Run>())
                             {
-                                isTitle = true;
+                                if (run.RunProperties?.Bold != null)
+                                {
+                                    isTitle = true;
+                                }
+                            }
+
+
+                            // Paragrafın girintisi varsa hasIndentation değerini true yap ve döngüden çık
+                            if (!isTitle && paragraph.InnerText.Length >= 150)
+                            {
+                                ParagraphStyleId styleId = paragraph.ParagraphProperties?.ParagraphStyleId;
+
+                                if ((paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == "0" || paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == "null" || paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == null) && paragraph.ParagraphProperties?.NumberingProperties?.NumberingId==null)
+                                {
+                                    if (!paragraph.InnerText.StartsWith("       "))
+                                    {
+                                        Console.WriteLine("--- Aşağıdaki paragrafta GİRİNTİ YOK! ---");
+                                        Console.WriteLine("- - - - - - - - - - - - - - - - - - - - -");
+                                        Console.WriteLine(paragraph.InnerText + "\n");
+                                        status = false;
+                                    }
+                                   
+                                }
+                                else
+                                {
+                                    //Console.WriteLine(" Girinti VAR ");
+                                    //Console.WriteLine(paragraph.InnerText + "\n");/R
+                                }
+                            }
+
+                            if (paragraph.InnerText.ToLower() == "kaynakça" || paragraph.InnerText.ToLower() == "references" || paragraph.InnerText.ToLower().Trim().EndsWith("references") || paragraph.InnerText.ToLower().Trim().EndsWith("kaynaklar"))
+                            {
+                                if (status)
+                                {
+                                    Console.WriteLine("GİRİNTİ : OK");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("GİRİNTİ : X");
+                                }
+
+                                return status;
                             }
                         }
-
-
-                        //ParagraphStyleId styleId = paragraph.ParagraphProperties?.ParagraphStyleId;
-
-                        //// Madde numaralandırması veya işaretleme stili kullanıldıysa
-                        //if (styleId?.Val.HasValue == true &&
-                        //    (styleId.Val.Value.StartsWith("List") || styleId.Val.Value.StartsWith("Bullet")))
-                        //{
-                        //    isMadde = true;
-                        //    Console.WriteLine("Paragraf bir madde elemanıdır.");
-                        //}
-
-
-                        // Paragrafın girintisi varsa hasIndentation değerini true yap ve döngüden çık
-                        if (!isTitle && paragraph.InnerText.Length>=150)
-                        {
-                            if (paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value != "360")
-                            {
-                                Console.WriteLine(" Girinti YOK ");
-                                Console.WriteLine(paragraph.InnerText+"\n");
-                            }
-                            else
-                            {
-                                //Console.WriteLine(" Girinti VAR ");
-                                //Console.WriteLine(paragraph.InnerText + "\n");
-                            }
-                        }
-
-                        if (paragraph.InnerText.ToLower()=="kaynakça")
-                        {
-                            break;
-                        }
-
                         
                     }
                 }
+                else
+                {
+                    Console.WriteLine("Giriş (Introduction) başlığı bulunamadı! Denetleme yapılamıyor.");
+                }
             }
+
+            if (status)
+            {
+                Console.WriteLine("GİRİNTİ : OK");
+            }
+            else
+            {
+                Console.WriteLine("GİRİNTİ : X");
+            }
+
+            Console.WriteLine("Kaynakça (References) başlığı bulunamadı! Denetleme son sayfaya kadar yapıldı.");
+
+            return status;
         }
 
 
