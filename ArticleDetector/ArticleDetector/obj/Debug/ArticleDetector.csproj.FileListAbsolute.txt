@@ -31,3 +31,14 @@ C:\Users\Asus\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debu
 C:\Users\Asus\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.csproj.CopyComplete
 C:\Users\Asus\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.exe
 C:\Users\Asus\Documents\ArticleDetector\ArticleDetector\ArticleDetector\obj\Debug\ArticleDetector.pdb
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Buffers.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Memory.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Numerics.Vectors.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\ICSharpCode.SharpZipLib.pdb
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\ICSharpCode.SharpZipLib.xml
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Buffers.xml
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Memory.xml
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Numerics.Vectors.xml
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 
@@ -12,14 +12,20 @@ namespace ArticleDetector
 {
     internal class Program
     {
+
+        public static List<string> names = new List<string>();
+        public static List<string> shorts = new List<string>();
+        public static List<string> KaynakcaNotFound = new List<string>();
+
         static void Main(string[] args)
         {
-            Console.Write("Denetleme yapılacak dosya ismini yapıştırınız : ");
+
+            Console.Write("DENETLEME YAPILACAK DOSYA İSMİ : ");
             string fileName = Console.ReadLine();
             Console.WriteLine();
 
-            //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\test.docx";
-            string dosyaYolu = "C:\\Users\\Asus\\Desktop\\articles\\"+ fileName.Replace(".docx", "") + ".docx";
+            string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\" + fileName.Replace(".docx", "") + ".docx";
+            //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\articles\\"+ fileName.Replace(".docx", "") + ".docx";
 
 
             bool girintiKontrol = CheckIndentationAfterHeading(dosyaYolu);
@@ -33,11 +39,14 @@ namespace ArticleDetector
 
             var atiflar = FindCitationsInDocx(dosyaYolu, atıfFirstName);
 
+            var a = KaynakcaIsimKontrol(dosyaYolu);
+
+
             Console.ReadLine();
-            
+
         }
 
-        
+
 
         //OK
         static bool KontrolEtFont(string dosyaYolu)
@@ -56,7 +65,7 @@ namespace ArticleDetector
                         {
                             if (!run.RunProperties.RunFonts.Ascii?.Value.Equals("Times New Roman") ?? true)
                             {
-                                Console.WriteLine("FONT : X (\""+ run.RunProperties.RunFonts.Ascii?.Value + "\" bulundu)");
+                                Console.WriteLine("FONT : X (\"" + run.RunProperties.RunFonts.Ascii?.Value + "\" bulundu)");
                                 return false;
                             }
                             else
@@ -77,7 +86,7 @@ namespace ArticleDetector
                 Console.WriteLine("FONT : OK");
             }
 
-            
+
 
             return true;
         }
@@ -205,16 +214,46 @@ namespace ArticleDetector
                     sayac++;
                 }
 
-                Console.WriteLine("\n[?] KULLANILAN TÜM ATIF ve KISALTMALAR İÇİN 'E veya e' yazın : ");
+                Console.WriteLine("\n[?] KAYNAKÇA'DA YER ALMAYAN İSİMLERİ GÖRMEK İÇİN 'E veya e' yazın : ");
                 detailRequest = Console.ReadLine();
 
                 if (detailRequest == "E" || detailRequest == "e")
                 {
                     sayac = 1;
-                    Console.WriteLine("\n[ - - - - - -BELGEDE GEÇEN TÜM ATIF ve KISALTMALAR - - - - - ] \n");
+                    //Console.WriteLine("\n[ - - - - - -BELGEDE GEÇEN TÜM ATIF ve KISALTMALAR - - - - - ] \n");
+
                     foreach (var atif in allcitations)
                     {
-                        Console.WriteLine(sayac + ". " + atif);
+
+                        List<string> ozelIsimler = AyiklaOzelIsimler(atif);
+                        bool sayiVarmi = VeriTurunuKontrolEt(atif);
+
+                        if (ozelIsimler!=null && ozelIsimler.Count>0)
+                        {
+                            if (sayiVarmi)
+                            {
+                                foreach (var isim in ozelIsimler)
+                                {
+                                    if (!names.Any(x=>x==isim))
+                                    {
+                                        names.Add(isim);
+                                    }
+                                    
+                                }
+                            }
+                            else
+                            {
+                                foreach (var shortName in ozelIsimler)
+                                {
+                                    if (!shorts.Any(x => x == shortName) && !names.Any(x => x == shortName))
+                                    {
+                                        shorts.Add(shortName);
+                                    }
+                                }
+                            }
+
+                        }
+                        //Console.WriteLine(sayac + ". " + atif);
                         sayac++;
                     }
                 }
@@ -263,9 +302,6 @@ namespace ArticleDetector
         }
 
 
-
-
-
         static bool CheckIndentationAfterHeading(string filePath)
         {
             bool status = true;
@@ -279,15 +315,14 @@ namespace ArticleDetector
 
 
                 Paragraph startParagraph = body.Descendants<Paragraph>()
-                    .FirstOrDefault(p => p.InnerText=="Giriş" || p.InnerText.ToLower()=="giriş" || p.InnerText.ToLower().Trim().EndsWith("giriş") || p.InnerText.ToLower().Trim().EndsWith("introduction") || p.InnerText=="INTRODUCTION" || p.InnerText.Trim().EndsWith("Introduction"));
+                    .FirstOrDefault(p => p.InnerText == "Giriş" || p.InnerText.ToLower() == "giriş" || p.InnerText.ToLower().Trim().EndsWith("giriş") || p.InnerText.ToLower().Trim().EndsWith("introduction") || p.InnerText == "INTRODUCTION" || p.InnerText.Trim().EndsWith("Introduction"));
 
 
                 if (startParagraph != null)
                 {
                     // "Giriş" paragrafının sonraki paragrafları kontrol etme
-                    bool hasIndentation = false;
 
-                    foreach (Paragraph paragraph in startParagraph.ElementsAfter().Where(x=>x.GetType().Name== "Paragraph"))
+                    foreach (Paragraph paragraph in startParagraph.ElementsAfter().Where(x => x.GetType().Name == "Paragraph"))
                     {
 
                         if (!String.IsNullOrEmpty(paragraph.InnerText))
@@ -308,7 +343,7 @@ namespace ArticleDetector
                             {
                                 ParagraphStyleId styleId = paragraph.ParagraphProperties?.ParagraphStyleId;
 
-                                if ((paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == "0" || paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == "null" || paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == null) && paragraph.ParagraphProperties?.NumberingProperties?.NumberingId==null)
+                                if ((paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == "0" || paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == "null" || paragraph.ParagraphProperties?.Indentation?.FirstLine?.Value == null) && paragraph.ParagraphProperties?.NumberingProperties?.NumberingId == null)
                                 {
                                     if (!paragraph.InnerText.StartsWith("       "))
                                     {
@@ -317,7 +352,7 @@ namespace ArticleDetector
                                         Console.WriteLine(paragraph.InnerText + "\n");
                                         status = false;
                                     }
-                                   
+
                                 }
                                 else
                                 {
@@ -340,7 +375,7 @@ namespace ArticleDetector
                                 return status;
                             }
                         }
-                        
+
                     }
                 }
                 else
@@ -359,6 +394,82 @@ namespace ArticleDetector
             }
 
             Console.WriteLine("Kaynakça (References) başlığı bulunamadı! Denetleme son sayfaya kadar yapıldı.");
+
+            return status;
+        }
+
+
+        static bool KaynakcaIsimKontrol(string filePath)
+        {
+            bool status = true;
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, false))
+            {
+                DocumentFormat.OpenXml.Wordprocessing.Document document = wordDoc.MainDocumentPart.Document;
+                Body body = document.Body;
+
+                // "Giriş" kelimesini içeren paragrafı bulma
+                List<Paragraph> startParagraphs = body.Descendants<Paragraph>().ToList();
+
+                string fullTextSearch = "";
+
+                Paragraph startParagraph = body.Descendants<Paragraph>()
+                    .FirstOrDefault(p => p.InnerText.ToLower() == "kaynakça" || p.InnerText.ToLower() == "references" || p.InnerText.ToLower().Trim().EndsWith("references") || p.InnerText.ToLower().Trim().EndsWith("kaynaklar"));
+
+                x:
+
+                if (startParagraph != null)
+                {
+                    // "Giriş" paragrafının sonraki paragrafları kontrol etme
+                    bool hasIndentation = false;
+
+                    foreach (Paragraph paragraph in startParagraph.ElementsAfter().Where(x => x.GetType().Name == "Paragraph"))
+                    {
+
+                        if (!String.IsNullOrEmpty(paragraph.InnerText))
+                        {
+                            fullTextSearch = fullTextSearch+" "+paragraph.InnerText;
+                        }
+
+                    }
+
+
+
+                    foreach (var name in names)
+                    {
+                        if (!fullTextSearch.Contains(name))
+                        {
+                            if (!fullTextSearch.Contains(name.Replace(" ","")))
+                            {
+                                KaynakcaNotFound.Add(name);
+                            }
+                        }
+                    }
+
+                    Console.WriteLine("\n[ - - - - - - KAYNAKÇA'DA YER ALMAYAN KELİMELER  - - - - - ] \n");
+
+
+                    int sayac = 1;
+                    foreach (var nameExtract in KaynakcaNotFound)
+                    {
+                        Console.WriteLine(sayac +". "+ nameExtract);
+                        sayac++;
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine("Kaynakça (resources) başlığı bulunamadı! Denetleme yapılamıyor.");
+
+                    Console.Write("\n[?] Kaynakça Başlık metnini manuel yazarak arama yap : ");
+                    string kaynakcaHead = Console.ReadLine();
+
+                    startParagraph = body.Descendants<Paragraph>()
+                    .FirstOrDefault(p => p.InnerText.ToLower() == kaynakcaHead.ToLower() || p.InnerText.ToLower() == kaynakcaHead.ToLower() || p.InnerText.ToLower().Trim().EndsWith(kaynakcaHead.ToLower()) || p.InnerText.ToLower().Trim().EndsWith(kaynakcaHead.ToLower()));
+
+                    goto x;
+
+                }
+            }
 
             return status;
         }
@@ -386,7 +497,7 @@ namespace ArticleDetector
             return true;
         }
 
-        
+
 
         //Other Functions
 
@@ -396,6 +507,36 @@ namespace ArticleDetector
             return points / 1440.0 * 2.54;
         }
 
+        static List<string> AyiklaOzelIsimler(string metin)
+        {
+            List<string> ozelIsimler = new List<string>();
 
+            TextInfo textInfo = new CultureInfo("tr-TR", false).TextInfo;
+            string duzenliIfadeDeseni = @"\b[A-ZÇĞİÖŞÜ][a-zçğıöşü]+(\s[A-ZÇĞİÖŞÜ][a-zçğıöşü]+)*\b";
+
+            foreach (Match eslesme in Regex.Matches(metin, duzenliIfadeDeseni))
+            {
+                string isim = textInfo.ToTitleCase(eslesme.Value.ToLower());
+                ozelIsimler.Add(isim);
+            }
+
+            return ozelIsimler;
+        }
+
+
+        static bool VeriTurunuKontrolEt(string metin)
+        {
+            string duzenliIfadeDeseni = @"\((\d+)\)";
+            Match eslesme = Regex.Match(metin, duzenliIfadeDeseni);
+
+            if (eslesme.Success)
+            {
+                return true; // Parantez içinde sayı var
+            }
+            else
+            {
+                return false; // Parantez içinde metin var
+            }
+        }
     }
 }
