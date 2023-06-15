@@ -45,9 +45,8 @@ namespace ArticleDetector
             Console.Write("\n[?] Atıf kontrolü için ilk atıf ismini (makale yazarının) girin. (Örn. 'Çakmaklı' yada 'Muradov')  : ");
             string atıfFirstName = Console.ReadLine();
 
-            var atiflar = FindCitationsInDocx(dosyaYolu, atıfFirstName);
-
-            var a = KaynakcaIsimKontrol(dosyaYolu);
+            FindCitationsInDocx(dosyaYolu, atıfFirstName);
+            KaynakcaIsimKontrol(dosyaYolu);
 
 
             Console.ReadLine();
@@ -614,27 +613,6 @@ namespace ArticleDetector
         }
 
 
-        static bool KontrolEtGirinti(string dosyaYolu)
-        {
-            using (WordprocessingDocument belge = WordprocessingDocument.Open(dosyaYolu, false))
-            {
-                Body body = belge.MainDocumentPart.Document.Body;
-
-                foreach (Paragraph paragraph in body.Elements<Paragraph>())
-                {
-                    if (!string.IsNullOrWhiteSpace(paragraph.InnerText))
-                    {
-                        if (!paragraph.ParagraphProperties.Indentation?.Left?.Value.Equals(-720) ?? true)
-                        {
-                            Console.WriteLine("GİRİNTİ : X");
-                            return false;
-                        }
-                    }
-                }
-            }
-            Console.WriteLine("GİRİNTİ : OK");
-            return true;
-        }
 
 
 
