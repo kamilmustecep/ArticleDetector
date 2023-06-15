@@ -1,0 +1,7 @@
+{
+    "filePath": "C:\\Users\\kamil.mustecep\\Desktop\\",
+    "fontFamily": "Times New Roman",
+    "puntoPx": "10",
+    "satirAraligi": "1.5",
+    "kenarBoslugu": "2,5"
+}

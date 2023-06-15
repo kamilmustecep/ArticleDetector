@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Newtonsoft.Json;
 
 namespace ArticleDetector
 {
@@ -15,24 +16,31 @@ namespace ArticleDetector
 
         public static List<string> names = new List<string>();
         public static List<string> shorts = new List<string>();
+        public static List<string> kaynakcaNames = new List<string>();
         public static List<string> KaynakcaNotFound = new List<string>();
 
         static void Main(string[] args)
         {
 
+            string jsonFilePath = "settings.txt";
+            string jsonContent = File.ReadAllText(jsonFilePath);
+
+            Models.settings settings = JsonConvert.DeserializeObject<Models.settings>(jsonContent);
+
+
             Console.Write("DENETLEME YAPILACAK DOSYA İSMİ : ");
             string fileName = Console.ReadLine();
             Console.WriteLine();
 
-            string dosyaYolu = "C:\\Users\\kamil.mustecep\\Desktop\\" + fileName.Replace(".docx", "") + ".docx";
+            string dosyaYolu = settings.filePath + fileName.Replace(".docx", "") + ".docx";
             //string dosyaYolu = "C:\\Users\\Asus\\Desktop\\articles\\"+ fileName.Replace(".docx", "") + ".docx";
 
-
+            bool fontKontrol = KontrolEtFont(dosyaYolu,settings.fontFamily);
+            bool puntoKontrol = KontrolEtPunto(dosyaYolu,settings.puntoPx);
+            bool satirAraligiKontrol = KontrolEtSatirAraligi(dosyaYolu,settings.satirAraligi);
+            bool boslukKontrol = KontrolEtKenarBosluk(dosyaYolu,settings.kenarBoslugu);
             bool girintiKontrol = CheckIndentationAfterHeading(dosyaYolu);
-            bool boslukKontrol = KontrolEtKenarBosluk(dosyaYolu);
-            bool fontKontrol = KontrolEtFont(dosyaYolu);
-            bool puntoKontrol = KontrolEtPunto(dosyaYolu);
-            bool satirAraligiKontrol = KontrolEtSatirAraligi(dosyaYolu);
+            
 
             Console.Write("\n[?] Atıf kontrolü için ilk atıf ismini (makale yazarının) girin. (Örn. 'Çakmaklı' yada 'Muradov')  : ");
             string atıfFirstName = Console.ReadLine();
@@ -49,7 +57,7 @@ namespace ArticleDetector
 
 
         //OK
-        static bool KontrolEtFont(string dosyaYolu)
+        static bool KontrolEtFont(string dosyaYolu,string fontFamily)
         {
             bool haveInformation = false;
 
@@ -63,9 +71,11 @@ namespace ArticleDetector
                     {
                         if (run.RunProperties.RunFonts.Ascii != null)
                         {
-                            if (!run.RunProperties.RunFonts.Ascii?.Value.Equals("Times New Roman") ?? true)
+                            if (!run.RunProperties.RunFonts.Ascii?.Value.Equals(fontFamily) ?? true)
                             {
-                                Console.WriteLine("FONT : X (\"" + run.RunProperties.RunFonts.Ascii?.Value + "\" bulundu)");
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("@     FONT : X (\"" + run.RunProperties.RunFonts.Ascii?.Value + "\" bulundu)");
+                                Console.ForegroundColor = ConsoleColor.White;
                                 return false;
                             }
                             else
@@ -79,11 +89,15 @@ namespace ArticleDetector
 
             if (!haveInformation)
             {
-                Console.WriteLine("FONT : BULUNAMADI! (MANUEL KONTROL ET)");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("@     FONT : BULUNAMADI! (MANUEL KONTROL ET)");
+                Console.ForegroundColor = ConsoleColor.White;
             }
             else
             {
-                Console.WriteLine("FONT : OK");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("@     FONT : OK");
+                Console.ForegroundColor = ConsoleColor.White;
             }
 
 
@@ -92,7 +106,7 @@ namespace ArticleDetector
         }
 
         //OK
-        static bool KontrolEtPunto(string dosyaYolu)
+        static bool KontrolEtPunto(string dosyaYolu, string puntoPx)
         {
             using (WordprocessingDocument belge = WordprocessingDocument.Open(dosyaYolu, false))
             {
@@ -102,20 +116,26 @@ namespace ArticleDetector
                 {
                     if (run.RunProperties != null && run.RunProperties.FontSize != null)
                     {
-                        if (!run.RunProperties.FontSize.Val?.Value.Equals("20") ?? true)
+                        int puntopxInt = Convert.ToInt32(puntoPx)*2;
+
+                        if (!run.RunProperties.FontSize.Val?.Value.Equals(puntopxInt.ToString()) ?? true)
                         {
-                            Console.WriteLine("PUNTO : X");
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("@     PUNTO : X");
+                            Console.ForegroundColor = ConsoleColor.White;
                             return false;
                         }
                     }
                 }
             }
-            Console.WriteLine("PUNTO : OK");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("@     PUNTO : OK");
+            Console.ForegroundColor = ConsoleColor.White;
             return true;
         }
 
-        //OK
-        static bool KontrolEtSatirAraligi(string dosyaYolu)
+        //OK - "satirAraligi" parameter do not using
+        static bool KontrolEtSatirAraligi(string dosyaYolu, string satirAraligi)
         {
             using (WordprocessingDocument belge = WordprocessingDocument.Open(dosyaYolu, false))
             {
@@ -128,14 +148,17 @@ namespace ArticleDetector
                         if ((!paragraphProperties.SpacingBetweenLines.LineRule?.Value.Equals(LineSpacingRuleValues.Auto) ?? true)
                             || (!paragraphProperties.SpacingBetweenLines.Line?.Value.Equals("360") ?? true))
                         {
-                            Console.WriteLine("SATIR ARALIĞI : X");
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("@     SATIR ARALIĞI : X");
+                            Console.ForegroundColor = ConsoleColor.White;
                             return false;
                         }
                     }
                 }
             }
-
-            Console.WriteLine("SATIR ARALIĞI : OK");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("@     SATIR ARALIĞI : OK");
+            Console.ForegroundColor = ConsoleColor.White;
             return true;
         }
 
@@ -157,12 +180,6 @@ namespace ArticleDetector
                 {
                     string paragraphText = paragraph.InnerText;
 
-                    // Paragraf metnindeki atıfları bulmak için kendi mantığınızı uygulayın
-                    // Örneğin, belirli bir düzenli ifade veya kelime desenini arayabilirsiniz
-
-                    // Örnek: Paragraf metninde parantez içindeki dört haneli sayıları bulma
-
-
                     //string pattern1 = @"(?<!\()\bÇakmaklı\b[^)]*\)";
                     //string pattern2 = @"\([^)]*Çakmaklı[^)]*\)";
                     string pattern = $@"(?<!\()\b{atifFirstName}\b[^)]*\)|\([^)]*{atifFirstName}[^)]*\)";
@@ -171,15 +188,6 @@ namespace ArticleDetector
 
                     foreach (Match match in matches1)
                     {
-                        //int length = match.Value.Length;
-                        //string value = match.Value;
-
-                        //if (length >= 100)
-                        //{
-                        //    value = match.Value.Substring(length - 50, 50);
-                        //}
-
-
                         citations.Add(match.Value);
                     }
 
@@ -200,7 +208,10 @@ namespace ArticleDetector
                         allcitations.Add(value);
                     }
 
-
+                    if (paragraph.InnerText.ToLower() == "kaynakça" || paragraph.InnerText.ToLower() == "references" || paragraph.InnerText.ToLower().Trim().EndsWith("references") || paragraph.InnerText.ToLower().Trim().EndsWith("kaynaklar"))
+                    {
+                        break;
+                    }
 
 
                 }
@@ -208,13 +219,14 @@ namespace ArticleDetector
                 int sayac = 1;
 
                 Console.WriteLine("\n[ - - - - - BELGEDE GEÇEN ATIFLAR - - - - - ]\n");
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 foreach (var atif in citations)
                 {
                     Console.WriteLine(sayac + ". " + atif);
                     sayac++;
                 }
-
-                Console.WriteLine("\n[?] KAYNAKÇA'DA YER ALMAYAN İSİMLERİ GÖRMEK İÇİN 'E veya e' yazın : ");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("\n[?] KAYNAKÇA'DA YER ALMAYAN İSİMLERİ GÖRMEK İÇİN 'E veya e' yazın : ");
                 detailRequest = Console.ReadLine();
 
                 if (detailRequest == "E" || detailRequest == "e")
@@ -228,17 +240,17 @@ namespace ArticleDetector
                         List<string> ozelIsimler = AyiklaOzelIsimler(atif);
                         bool sayiVarmi = VeriTurunuKontrolEt(atif);
 
-                        if (ozelIsimler!=null && ozelIsimler.Count>0)
+                        if (ozelIsimler != null && ozelIsimler.Count > 0)
                         {
                             if (sayiVarmi)
                             {
                                 foreach (var isim in ozelIsimler)
                                 {
-                                    if (!names.Any(x=>x==isim))
+                                    if (!names.Any(x => x == isim))
                                     {
                                         names.Add(isim);
                                     }
-                                    
+
                                 }
                             }
                             else
@@ -263,7 +275,7 @@ namespace ArticleDetector
         }
 
         //OK
-        static bool KontrolEtKenarBosluk(string dosyaYolu)
+        static bool KontrolEtKenarBosluk(string dosyaYolu, string kenarBoslugu)
         {
             using (WordprocessingDocument belge = WordprocessingDocument.Open(dosyaYolu, false))
             {
@@ -284,18 +296,21 @@ namespace ArticleDetector
                         double leftMarginCm = ConvertToCm(pageMargin.Left.Value.ToString());
                         double rightMarginCm = ConvertToCm(pageMargin.Right.Value.ToString());
 
-                        double desiredMarginCm = 2.5;
+                        double desiredMarginCm = Convert.ToDouble(kenarBoslugu);
 
                         if (Math.Abs(topMarginCm - desiredMarginCm) < 0.02 && Math.Abs(bottomMarginCm - desiredMarginCm) < 0.02 &&
                             Math.Abs(leftMarginCm - desiredMarginCm) < 0.02 && Math.Abs(rightMarginCm - desiredMarginCm) < 0.02)
                         {
-                            Console.WriteLine("KENAR BOŞLUKLARI : OK");
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("@     KENAR BOŞLUKLARI : OK\n");
+                            Console.ForegroundColor = ConsoleColor.White;
                             return true;
                         }
                     }
                 }
-
-                Console.WriteLine("KENAR BOŞLUKLARI : X");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("@     KENAR BOŞLUKLARI : X");
+                Console.ForegroundColor = ConsoleColor.White;
                 return false;
             }
 
@@ -317,6 +332,7 @@ namespace ArticleDetector
                 Paragraph startParagraph = body.Descendants<Paragraph>()
                     .FirstOrDefault(p => p.InnerText == "Giriş" || p.InnerText.ToLower() == "giriş" || p.InnerText.ToLower().Trim().EndsWith("giriş") || p.InnerText.ToLower().Trim().EndsWith("introduction") || p.InnerText == "INTRODUCTION" || p.InnerText.Trim().EndsWith("Introduction"));
 
+            x:
 
                 if (startParagraph != null)
                 {
@@ -347,8 +363,10 @@ namespace ArticleDetector
                                 {
                                     if (!paragraph.InnerText.StartsWith("       "))
                                     {
+                                        Console.ForegroundColor = ConsoleColor.Red;
                                         Console.WriteLine("--- Aşağıdaki paragrafta GİRİNTİ YOK! ---");
                                         Console.WriteLine("- - - - - - - - - - - - - - - - - - - - -");
+                                        Console.ForegroundColor = ConsoleColor.White;
                                         Console.WriteLine(paragraph.InnerText + "\n");
                                         status = false;
                                     }
@@ -365,11 +383,15 @@ namespace ArticleDetector
                             {
                                 if (status)
                                 {
-                                    Console.WriteLine("GİRİNTİ : OK");
+                                    Console.ForegroundColor = ConsoleColor.Green;
+                                    Console.WriteLine("@     GİRİNTİ : OK");
+                                    Console.ForegroundColor = ConsoleColor.White;
                                 }
                                 else
                                 {
-                                    Console.WriteLine("GİRİNTİ : X");
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine("@     GİRİNTİ : X");
+                                    Console.ForegroundColor = ConsoleColor.White;
                                 }
 
                                 return status;
@@ -381,16 +403,28 @@ namespace ArticleDetector
                 else
                 {
                     Console.WriteLine("Giriş (Introduction) başlığı bulunamadı! Denetleme yapılamıyor.");
+
+                    Console.Write("\n[?] Giriş Başlık metnini manuel yazarak arama yap : ");
+                    string girisHead = Console.ReadLine();
+
+                    startParagraph = body.Descendants<Paragraph>()
+                    .FirstOrDefault(p => p.InnerText.ToLower() == girisHead.ToLower() || p.InnerText.ToLower() == girisHead.ToLower() || p.InnerText.ToLower().Trim().EndsWith(girisHead.ToLower()) || p.InnerText.ToLower().Trim().EndsWith(girisHead.ToLower()));
+
+                    goto x;
                 }
             }
 
             if (status)
             {
+                Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("GİRİNTİ : OK");
+                Console.ForegroundColor = ConsoleColor.White;
             }
             else
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("GİRİNTİ : X");
+                Console.ForegroundColor = ConsoleColor.White;
             }
 
             Console.WriteLine("Kaynakça (References) başlığı bulunamadı! Denetleme son sayfaya kadar yapıldı.");
@@ -410,24 +444,25 @@ namespace ArticleDetector
                 // "Giriş" kelimesini içeren paragrafı bulma
                 List<Paragraph> startParagraphs = body.Descendants<Paragraph>().ToList();
 
-                string fullTextSearch = "";
+                string ResourcefullTextSearch = "";
+
+                string ArticlefullTextSearch = "";
 
                 Paragraph startParagraph = body.Descendants<Paragraph>()
                     .FirstOrDefault(p => p.InnerText.ToLower() == "kaynakça" || p.InnerText.ToLower() == "references" || p.InnerText.ToLower().Trim().EndsWith("references") || p.InnerText.ToLower().Trim().EndsWith("kaynaklar"));
 
-                x:
+            x:
 
                 if (startParagraph != null)
                 {
-                    // "Giriş" paragrafının sonraki paragrafları kontrol etme
-                    bool hasIndentation = false;
+
 
                     foreach (Paragraph paragraph in startParagraph.ElementsAfter().Where(x => x.GetType().Name == "Paragraph"))
                     {
 
                         if (!String.IsNullOrEmpty(paragraph.InnerText))
                         {
-                            fullTextSearch = fullTextSearch+" "+paragraph.InnerText;
+                            ResourcefullTextSearch = ResourcefullTextSearch + " " + paragraph.InnerText;
                         }
 
                     }
@@ -436,9 +471,9 @@ namespace ArticleDetector
 
                     foreach (var name in names)
                     {
-                        if (!fullTextSearch.Contains(name))
+                        if (!ResourcefullTextSearch.Contains(name))
                         {
-                            if (!fullTextSearch.Contains(name.Replace(" ","")))
+                            if (!ResourcefullTextSearch.Contains(name.Replace(" ", "")))
                             {
                                 KaynakcaNotFound.Add(name);
                             }
@@ -447,14 +482,14 @@ namespace ArticleDetector
 
                     Console.WriteLine("\n[ - - - - - - KAYNAKÇA'DA YER ALMAYAN KELİMELER  - - - - - ] \n");
 
-
-                    int sayac = 1;
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    int sayac2 = 1;
                     foreach (var nameExtract in KaynakcaNotFound)
                     {
-                        Console.WriteLine(sayac +". "+ nameExtract);
-                        sayac++;
+                        Console.WriteLine(sayac2 + ". " + nameExtract);
+                        sayac2++;
                     }
-
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
                 else
                 {
@@ -469,6 +504,110 @@ namespace ArticleDetector
                     goto x;
 
                 }
+
+
+
+                startParagraph = body.Descendants<Paragraph>()
+            .FirstOrDefault(p => p.InnerText == "Giriş" || p.InnerText.ToLower() == "giriş" || p.InnerText.ToLower().Trim().EndsWith("giriş") || p.InnerText.ToLower().Trim().EndsWith("introduction") || p.InnerText == "INTRODUCTION" || p.InnerText.Trim().EndsWith("Introduction"));
+
+            y:
+
+                if (startParagraph != null)
+                {
+                    // "Giriş" paragrafının sonraki paragrafları kontrol etme
+
+                    foreach (Paragraph paragraph in startParagraph.ElementsAfter().Where(x => x.GetType().Name == "Paragraph"))
+                    {
+
+                        if (!String.IsNullOrEmpty(paragraph.InnerText))
+                        {
+                            ArticlefullTextSearch = ArticlefullTextSearch + " " + paragraph.InnerText;
+
+
+                            if (paragraph.InnerText.ToLower() == "kaynakça" || paragraph.InnerText.ToLower() == "references" || paragraph.InnerText.ToLower().Trim().EndsWith("references") || paragraph.InnerText.ToLower().Trim().EndsWith("kaynaklar"))
+                            {
+                                break;
+                            }
+                        }
+
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Giriş (Introduction) başlığı bulunamadı! Denetleme yapılamıyor.");
+
+                    Console.Write("\n[?] Giriş Başlık metnini manuel yazarak arama yap : ");
+                    string girisHead = Console.ReadLine();
+
+                    startParagraph = body.Descendants<Paragraph>()
+                    .FirstOrDefault(p => p.InnerText.ToLower() == girisHead.ToLower() || p.InnerText.ToLower() == girisHead.ToLower() || p.InnerText.ToLower().Trim().EndsWith(girisHead.ToLower()) || p.InnerText.ToLower().Trim().EndsWith(girisHead.ToLower()));
+
+                    goto y;
+                }
+
+
+
+
+                List<string> kaynakcaParantezler = new List<string>();
+
+                string otherPattern = @"(?<!\()\w+\b[^)]*\)|\([^)]*\w+\b[^)]*\)";
+
+                MatchCollection matches2 = Regex.Matches(ResourcefullTextSearch, otherPattern);
+
+                foreach (Match match in matches2)
+                {
+                    int length = match.Value.Length;
+                    string value = match.Value;
+
+                    if (length >= 100)
+                    {
+                        value = match.Value.Substring(length - 50, 50);
+                    }
+                    kaynakcaParantezler.Add(value);
+                }
+
+
+                //Kaynakça'daki özel isimler
+
+                foreach (var kparantezler in kaynakcaParantezler)
+                {
+
+
+                    List<string> ozelIsimler = AyiklaOzelIsimler(kparantezler);
+
+                    if (ozelIsimler != null && ozelIsimler.Count > 0)
+                    {
+
+                        foreach (var isim in ozelIsimler)
+                        {
+                            if (!kaynakcaNames.Any(x => x == isim) && !names.Any(x => x == isim) && !shorts.Any(x => x == isim))
+                            {
+                                if (!ArticlefullTextSearch.Contains(isim))
+                                {
+                                    kaynakcaNames.Add(isim);
+                                }
+                                else
+                                {
+                                    var asda = "var";
+                                }
+                                
+                            }
+
+                        }
+                    }
+
+                }
+
+                Console.WriteLine("\n[ - - - - - - MAKALE'DE YER ALMAYAN KELİMELER  - - - - - ] \n");
+
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                int sayac = 1;
+                foreach (var nameExtract in kaynakcaNames)
+                {
+                    Console.WriteLine(sayac + ". " + nameExtract);
+                    sayac++;
+                }
+                Console.ForegroundColor = ConsoleColor.White;
             }
 
             return status;

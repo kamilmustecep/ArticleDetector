@@ -42,3 +42,5 @@ C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetecto
 C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Memory.xml
 C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Numerics.Vectors.xml
 C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\Newtonsoft.Json.dll
+C:\Users\kamil.mustecep\Documents\ArticleDetector\ArticleDetector\ArticleDetector\bin\Debug\Newtonsoft.Json.xml
